@@ -31,14 +31,14 @@ pipeline {
 
        stage('Creando la imagen') {
             steps {
-                sh 'cd /home/vagrant/TP-10 && docker build -t lucaseveron/appjava:v1.0 .'
+                sh 'cd /home/vagrant/TP-10 && docker build -t lucaseveron/appjava:v1.1 .'
             }
         }
 
 
        stage('Ejecutando el contenedor') {
             steps {
-                sh 'docker run -p 80:80 -p 7080:7080 -d --name app_front lucaseveron/appjava:v1.0'
+                sh 'docker run -p 80:80 -p 7080:7080 -d --name app_front lucaseveron/appjava:v1.1'
             }
         }
 
@@ -60,7 +60,7 @@ pipeline {
 
        stage('Docker push') {
             steps {
-                sh 'docker push lucaseveron/appjava:v1.0'
+                sh 'docker push lucaseveron/appjava:v1.1'
                 echo 'Push Image Completed'
             }
         }
