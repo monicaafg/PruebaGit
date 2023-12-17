@@ -1,60 +1,122 @@
 pipeline { 
+
     agent any 
+
+
+
     environment { 
+
         DOCKERHUB_CREDENTIALS= credentials('dockerhubcredentials') 
+        DOCKER_TAG = "v1.${env.BUILD_NUMBER}.${env.BUILD_ID}" // Genera una etiqueta única para cada compilación
+        DOCKER_IMAGE = "monicaafg/appjava:${DOCKER_TAG}" // Usa la etiqueta en el nombre de la imagen
     } 
+
+
 
     stages { 
+
         stage('Eliminado de archivos viejos') { 
+
             steps { 
+
                 dir('TP6_App_docker') { 
+
                     deleteDir() 
+
                 } 
+
             } 
+
         } 
+
+
 
         stage('Eliminado de contendores viejos') { 
+
             steps { 
+
                 sh 'docker container prune -f' 
+
             } 
+
         } 
+
+
 
         stage('Descarga de la aplicación desde Github') { 
+
             steps { 
+
                 sh 'git clone https://github.com/lucaseveron/TP6_App_docker.git' 
+
             } 
+
         } 
+
+
 
         stage('Creando la imagen') { 
+
             steps { 
-                sh 'cd TP6_App_docker && docker build -t monicaafg/appjava:v1.0 .' 
+
+                sh 'cd TP6_App_docker && docker build -t ${DOCKER_IMAGE} .' 
+
             } 
+
         } 
+
+
 
         stage('Ejecutando el contenedor') { 
+
             steps { 
-                sh 'docker run -p 80:80 -p 7080:7080 -d --name app_front monicaafg/appjava:v1.0' 
+
+                sh 'docker run -p 80:80 -p 7080:7080 -d --name app_front ${DOCKER_IMAGE}' 
+
             } 
+
         } 
+
+
 
         stage('Validando la web') { 
+
             steps { 
+
                 sh "curl -LI http://localhost/ -o /dev/null -w '%{http_code}\n' -s" 
+
             } 
+
         } 
+
+
 
         stage('Docker login') { 
+
             steps { 
+
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin' 
+
                 echo 'Login Completed' 
+
             } 
+
         } 
 
+
+
         stage('Docker push') { 
+
             steps { 
-                sh 'docker push monicaafg/appjava:v1.0' 
+
+                sh 'docker push ${DOCKER_IMAGE}' 
+
                 echo 'Push Image Completed' 
+
             } 
+
         } 
+
     } 
+
 }
